@@ -15,7 +15,7 @@ At the top of this script, configure `LOGS_PATH` with the full direct path to wh
 Nothing should be modified in this file, unless the placement of `channels.sh` is outside of the normal directory: `/var/db/newrelic-infra/integrations.d`. The polling interval is currently 2 minutes to read the log file and send the latest logs to New Relic - This can be modified as needed.
 
 ## Setup
-1. Configure shell script per #Configuration section above
+1. Configure shell script per [Configuration](#configuration) section above
 2. Place `channels.sh` and `channels.yml` within `/var/db/newrelic-infra/integrations.d`
 3. Restart Infrastructure agent
 
