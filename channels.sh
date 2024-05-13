@@ -4,10 +4,13 @@
 #Purpose: Read, parse, and send SAP PI channel logs to New Relic
 
 ####### CONFIGURATION ##########
+INTEGRATION_PATH="/var/db/newrelic-infra/integrations.d" #Path to this script
 LOGS_PATH="/usr/newrelic/logging" # Path to comm channel logs
 CHANNEL_COMM_FILE="communicationchannels.log" # Name of comm channel file
 CHECKPOINT_FILE=".last_log_evaluated" # File that stores the last log line evaluated, in order to determine what log lines subsequent executions should start processing at
 ####### CONFIGURATION ##########
+
+cd $INTEGRATION_PATH
 
 #JSON payload init
 payload=()
