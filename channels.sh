@@ -45,6 +45,13 @@ if [[ -f "$CHECKPOINT_FILE" ]]; then
   escaped_last_line=$(echo "$last_line" | sed 's/\[/\\[/g; s/\]/\\]/g')
   last_line_number=$(grep -n "$escaped_last_line" "$LOGS_PATH/$CHANNEL_COMM_FILE" | cut -d ":" -f 1) #Get line number of last line stored from previous execution
 
+  #file was rotated (last log stored no longer exists in file)
+  if [ -z $last_line_number ]; then
+    last_line_number="0"
+  else
+    : #do nothing
+  fi
+
   #Only add new lines after lines already processed on previous executions (if there are new lines to process)
   if [ "$last_line_number" -lt "$(wc -l < "$LOGS_PATH/$CHANNEL_COMM_FILE" | awk '{print $1}')" ]; then
     let "starting_line=$last_line_number+1"
