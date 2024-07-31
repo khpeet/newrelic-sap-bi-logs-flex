@@ -1,15 +1,15 @@
 ---
 integrations:
   - name: nri-flex
-    interval: 120s
-    # env:
+    interval: 150s
+    # env: #OPTIONAL env variables
     #   EVENT_LIMIT: 100000 ## default 500
     #   INSIGHTS_API_KEY: <key>
     #   INSIGHTS_URL: https://insights-collector.newrelic.com/v1/accounts/<account_id>/events
     config:
       name: sap_communicationchannels
       apis:
-        - name: sapcommunicationchannel
+        - name: sapCommunicationChannelStatus
           commands:
             - run: /var/db/newrelic-infra/integrations.d/channels.sh
               timeout: 110000

@@ -5,11 +5,10 @@ Bash script / flex integration that reads a SAP communication channel log file g
 ## Requirements
 * Infrastructure agent installed (Linux)
 
-
 ## Configuration
 
 ### channels.sh
-At the top of this script, configure `LOGS_PATH` with the full direct path to where communication channel logs are written to. Configure `CHANNEL_SUMMARY_FILE` to the name of `channelsummary.log` - typically the default filename can be used.
+At the top of this script, configure `LOGS_PATH` with the full direct path to where communication channel logs are written to. Configure `CHANNEL_SUMMARY_FILE` to the name of `channels.log` - typically the default filename can be used.
 
 ### channels.yml
 Nothing should be modified in this file, unless the placement of `channels.sh` is outside of the normal directory: `/var/db/newrelic-infra/integrations.d`. The polling interval is currently 2 minutes to read the log file and send the latest logs to New Relic - This can be modified as needed.

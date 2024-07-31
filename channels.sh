@@ -1,12 +1,12 @@
 #!/bin/bash
 
 #Author: Keagan Peet <kpeet@newrelic.com>
-#Purpose: Read, parse, and send SAP PI channel logs to New Relic
+#Purpose: Read, parse, and send SAP PI channel status logs to New Relic
 
 ####### CONFIGURATION ##########
 INTEGRATION_PATH="/var/db/newrelic-infra/integrations.d" #Path to this script
 LOGS_PATH="/usr/newrelic/logging" # Path to comm channel logs
-CHANNEL_SUMMARY_FILE="channelsummary.log" # Name of comm channel file
+CHANNEL_SUMMARY_FILE="channels.log" # Name of comm channel file
 CHECKPOINT_FILE=".last_log_evaluated" # File that stores the last log line evaluated, in order to determine what log lines subsequent executions should start processing at
 ####### CONFIGURATION ##########
 
@@ -15,18 +15,35 @@ cd $INTEGRATION_PATH
 #JSON payload init
 payload=()
 
+process_channel_group () {
+  local status="$1"
+  local channelGroup="$2"
+
+  if [ "$channelGroup" != "None Reported" ]; then
+    local channelGroupArray=(${channelGroup//,/ })
+    for channel in "${channelGroupArray[@]}"; do
+      payload+=("{\"nodeName\": \"$nodeName\", \"collectionTime\": \"$collectionTime\", \"channelName\": \"$channel\", \"status\": \"$status\"},")
+    done
+  fi
+}
+
 #Function to parse a given log line and add formatted data to array following NR spec
 add_to_payload () {
   local line="$1"
-  #local channelName=$(echo "$line" | grep -oP '(?<=Name: )[A-Z_0-9]+')
-  local channelName=$(echo "$line" | awk -F 'Name: ' '{print $2}' | awk -F ',' '{print $1}')
-  local channelId=$(echo "$line" | awk -F 'Channel Id: ' '{print $2}' | awk -F ',' '{print $1}')
-  local channelStatus=$(echo "$line" | awk -F 'Channel Status: ' '{print $2}' | awk -F ',' '{print $1}')
-  local adapterType=$(echo "$line" | awk -F 'Adapter Type: ' '{print $2}' | awk -F ',' '{print $1}')
-  local direction=$(echo "$line" | awk -F 'Direction: ' '{print $2}' | awk -F ',' '{print $1}')
-  local num_nodes=$(echo "$line" | awk -F 'Number of Nodes: ' '{print $2}' | awk -F ',' '{print $1}')
 
-  payload+=("{\"channelName\": \"$channelName\", \"channelId\": \"$channelId\", \"channelStatus\": \"$channelStatus\", \"adapterType\": \"$adapterType\", \"direction\": \"$direction\", \"number_of_nodes\": \"$num_nodes\"},")
+  local collectionTime=$(echo "$line" | awk -F 'Collection Time: ' '{print $2}' | awk -F ',' '{print $1}')
+  local nodeName=$(echo "$line" | awk -F 'Node Name: ' '{print $2}' | awk -F ',' '{print $1}')
+  local inactiveChannels=$(echo "$line" | grep -oP '(?<=Inactive Channels: \[)[^]]*' | tr -d '[]' | xargs)
+  local errornousChannels=$(echo "$line" | grep -oP '(?<=Errornous Channels: \[)[^]]*' | tr -d '[]' | xargs)
+  local withErrorsChannels=$(echo "$line" | grep -oP '(?<=With Errors Channels: \[)[^]]*' | tr -d '[]' | xargs)
+  local stoppedChannels=$(echo "$line" | grep -oP '(?<=Stopped Channels: \[)[^]]*' | tr -d '[]' | xargs)
+  local activeChannels=$(echo "$line" | grep -oP '(?<=Active Channels: \[)[^]]*' | tr -d '[]' | xargs)
+
+  process_channel_group "inactive" "$inactiveChannels"
+  process_channel_group "errornous" "$errornousChannels"
+  process_channel_group "with_errors" "$withErrorsChannels"
+  process_channel_group "stopped" "$stoppedChannels"
+  process_channel_group "active" "$activeChannels"
 }
 
 #Validate if first run or not
